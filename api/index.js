@@ -1,2 +1,2 @@
-module.exports.router = require('./router');
+module.exports.helper = require('./helper');
 module.exports.load = require('./load')
