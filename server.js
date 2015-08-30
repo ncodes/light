@@ -10,9 +10,8 @@ var api			= require('./api')
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/assets'));
-app.use(express.static(__dirname + 'assets/views'));
 app.use(morgan('combined'))
-nunjucks.configure('assets/views', {
+nunjucks.configure('views', {
     autoescape: true,
     express: app
 });
