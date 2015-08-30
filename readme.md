@@ -1,0 +1,1 @@
+Light is a lightweight nodejs framework inspired by sailsjs.
