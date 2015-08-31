@@ -1,14 +1,11 @@
 var express    	= require('express');       
 var app        	= express();                
-var bodyParser 	= require('body-parser');
 var nunjucks  	= require('nunjucks'); 
 var morgan 		= require('morgan');
 var con 		= require('consolidate');
 var api			= require('./api')			
 
-// configure app
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+// define template
 app.use(express.static(__dirname + '/assets'));
 app.use(morgan('combined'))
 env = nunjucks.configure('views', {
@@ -19,7 +16,8 @@ env = nunjucks.configure('views', {
 
 // load api (controllers, models, services, view helpers etc)
 api.load(app, env).then(function(){
-	
+
+	// configure app
 	var routes	= require('./app/config/routes');
 	
 	// set port

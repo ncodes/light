@@ -8,6 +8,7 @@ var Promise = require('Bluebird'),
 	Bluebird = require('Bluebird'),
 	lodash	 = require('lodash'),
 	async	 = require('async'),
+	bodyParser 	= require('body-parser');
 	request	 = require('request');
 
 // global config object
@@ -92,6 +93,31 @@ module.exports = function (app, nunjucksEnv) {
 				} else {
 					return done(null, true)
 				}
+			},
+
+			// load middlewares. Middlewares and their load order must
+			// be defined in config/http.js
+			function LoadMiddlewares(done) {
+
+				if (light.config.http) {
+					var executionOrder = light.config.http.order || [ "bodyParser" ];
+					var middlewares = light.config.http.middlewares || {};
+					executionOrder.forEach(function(name){
+						switch (name) {
+							
+							case "bodyParser": // bodyParser (middleware is usually not defined in http.middlewares)
+								app.use(bodyParser.urlencoded({ extended: true }));
+								app.use(bodyParser.json());
+								break;
+
+							default:
+								if (middlewares[name]) {
+									app.use(middlewares[name])
+								}
+						}
+					})
+				}
+				done(null, true)
 			}
 
 		], function(err, result){
