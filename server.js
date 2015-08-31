@@ -11,13 +11,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(__dirname + '/assets'));
 app.use(morgan('combined'))
-nunjucks.configure('views', {
+env = nunjucks.configure('views', {
     autoescape: true,
+    watch: true,
     express: app
 });
 
-// load api (controllers, models, services etc)
-api.load().then(function(){
+// load api (controllers, models, services, view helpers etc)
+api.load(app, env).then(function(){
 	
 	var routes	= require('./app/config/routes');
 	

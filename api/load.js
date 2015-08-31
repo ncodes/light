@@ -44,40 +44,59 @@ function getDirModules(dirPath, moduleName, ignoreFiles) {
 	});
 }
 
-module.exports = function () {
+module.exports = function (app, nunjucksEnv) {
 	return new Promise(function(resolve, reject){
-		Promise.join(
-			getDirModules('./app/config', 'config', ['routes.js']),
-			getDirModules('./app/controllers', 'controllers'),
-			getDirModules('./app/models', 'models'),
-			getDirModules('./app/services', 'services'),
-			function(config, controllers, models, services){
-				global.light.config = config;
-				global.controllers = controllers;
-				global.models = models;
-				global.services = services;
-				global._ = lodash;
-				global.async = async;
-				global.request = request
-		})
-		.then(function(){
-			
-			// if NODE_ENV environment is set, find the current environment specific config file and
-			// use extend light.config with this new file
-			if (process.env.NODE_ENV) {
-				getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
-					var currentEnvConfig = envConfigModules[process.env.NODE_ENV];
-					_.extend(light.config, currentEnvConfig)
-					resolve()
-				}).catch(function(err){
-					resolve()
-				});
-			} else {
-				resolve()
+		async.series([
+
+			// load modules
+			function LoadModules(done) {
+				Promise.join(
+					getDirModules('./app/config', 'config', ['routes.js']),
+					getDirModules('./app/controllers', 'controllers'),
+					getDirModules('./app/models', 'models'),
+					getDirModules('./app/services', 'services'),
+					function(config, controllers, models, services){
+						global.light.config = config;
+						global.controllers = controllers;
+						global.models = models;
+						global.services = services;
+						global._ = lodash;
+						global.async = async;
+						global.request = request
+
+						// add nunjucks view helper
+						// expects view helper file to be in services folder
+						if (nunjucksEnv) {
+							nunjucksEnv.addGlobal('helper', global.services.view_helper)
+						}
+
+						done(null, true)
+				})
+			},
+
+			// load environment config and extend existing config
+			function ExtendConfig(done) {
+
+				process.env.NODE_ENV = process.env.NODE_ENV || "development"
+
+				// if NODE_ENV environment is set, find the current environment specific config file and
+				// use extend light.config with this new file
+				if (process.env.NODE_ENV) {
+					getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
+						var currentEnvConfig = envConfigModules[process.env.NODE_ENV];
+						_.extend(light.config, currentEnvConfig)
+						return done(null, true)
+					}).catch(function(err){
+						return done(err)
+					});
+				} else {
+					return done(null, true)
+				}
 			}
-		})
-		.catch(function(err){
-			throw new Error(err)
+
+		], function(err, result){
+			if (err) throw new Error(err);
+			return resolve()
 		})
 	});
 }
