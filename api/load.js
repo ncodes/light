@@ -31,9 +31,9 @@ function getDirModules(dirPath, moduleName, ignoreFiles) {
 			if (err) return reject("Error occurred while trying to load " + moduleName + " from dir " + dirPath + " " + err)
 		    
 		    // remove any file that matches the ignore file list
-			// also ignore directories
+			// also ignore directories. Also ignore files with _ prefix
 		    files = files.filter(function(file){
-		    	return file.match(/[.]{1}js$/) && lodash.indexOf(ignoreFiles, file) === -1
+		    	return file.match(/[.]{1}js$/) && lodash.indexOf(ignoreFiles, file) === -1 && file[0] != "_"
 		    });
 		   
 		    // load module
