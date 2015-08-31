@@ -67,7 +67,7 @@ module.exports = function (app, nunjucksEnv) {
 						// add nunjucks view helper
 						// expects view helper file to be in services folder
 						if (nunjucksEnv) {
-							nunjucksEnv.addGlobal('helper', global.services.view_helper)
+							nunjucksEnv.addGlobal('helper', global.services.view_helper || {})
 						}
 
 						done(null, true)
