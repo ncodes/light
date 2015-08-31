@@ -5,12 +5,15 @@
  * will be executed
  */
 
+var expressValidator = require('express-validator');
+
 module.exports = {
 
 	// define the middlewares in your preferred order of execution.
 	// middlewares must be defined in `this.middleware` object
 	order: [
 		"bodyParser",
+		"formValidation"
 		// "hello"
 	],
 
@@ -24,5 +27,9 @@ module.exports = {
 		// 	console.log("Hello! I am a middleware!")
 		// 	next()
 		// }
+
+		// form validation
+		// repo: https://github.com/ctavan/express-validator
+		formValidation: expressValidator()
 	}
 }
