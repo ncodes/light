@@ -16,7 +16,7 @@ global.light = { config: {}}
 
 // get all modules in a directory
 function getDirModules(dirPath, moduleName, ignoreFiles) {
-	var ignoreFiles = ignoreFiles || [];
+	var ignoreFiles = ignoreFiles || ['gitignore','gitkeep'];
 	var moduleName = moduleName || "modules";
 	return new Bluebird(function(resolve, reject){
 		var modules = {}
@@ -56,15 +56,17 @@ module.exports = function (app, nunjucksEnv) {
 					getDirModules('./app/controllers', 'controllers'),
 					getDirModules('./app/models', 'models'),
 					getDirModules('./app/services', 'services'),
-					function(config, controllers, models, services){
+					getDirModules('./app/policies', 'policies'),
+					function(config, controllers, models, services, policies){
 						global.light.config = config;
 						global.controllers = controllers;
 						global.models = models;
 						global.services = services;
+						global.policies = policies;
 						global._ = lodash;
 						global.async = async;
 						global.request = request
-
+						
 						// add nunjucks view helper
 						// expects view helper file to be in services folder
 						if (nunjucksEnv) {
