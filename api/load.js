@@ -16,21 +16,24 @@ global.light = { config: {}}
 
 // get all modules in a directory
 function getDirModules(dirPath, moduleName, ignoreFiles) {
+	
 	var ignoreFiles = ignoreFiles || ['gitignore','gitkeep'];
 	var moduleName = moduleName || "modules";
+	
 	return new Bluebird(function(resolve, reject){
+		
+		// holds modules in current directory
 		var modules = {}
+		
+		// read contents in directory
 		fs.readdir(dirPath, function(err, files) {
+			
 			if (err) return reject("Error occurred while trying to load " + moduleName + " from dir " + dirPath + " " + err)
 		    
 		    // remove any file that matches the ignore file list
 			// also ignore directories
 		    files = files.filter(function(file){
-		    	var ok = true
-		    	ignoreFiles.forEach(function(f) {
-		    		ok = (file.indexOf(f) === -1 && file.indexOf('.js') !== -1) ? true : false
-		    	});
-		    	return ok;
+		    	return file.match(/[.]{1}js$/) && lodash.indexOf(ignoreFiles, file) === -1
 		    });
 		   
 		    // load module
@@ -52,12 +55,15 @@ module.exports = function (app, nunjucksEnv) {
 			// load modules
 			function LoadModules(done) {
 				Promise.join(
+
 					getDirModules('./app/config', 'config', ['routes.js']),
 					getDirModules('./app/controllers', 'controllers'),
 					getDirModules('./app/models', 'models'),
 					getDirModules('./app/services', 'services'),
 					getDirModules('./app/policies', 'policies'),
+
 					function(config, controllers, models, services, policies){
+						
 						global.light.config = config;
 						global.controllers = controllers;
 						global.models = models;
@@ -120,6 +126,15 @@ module.exports = function (app, nunjucksEnv) {
 					})
 				}
 				done(null, true)
+			},
+
+			// call bootstrap module. Pass `done` to it. 
+			// if `done` is not called, server doesn't start
+			function Bootstrap(done) {
+				if (light.config.bootstrap || lodash.isFunction(light.config.bootstrap)) {
+					light.config.bootstrap(function(){ done(null, true); })
+					delete light.config.bootstrap;
+				}
 			}
 
 		], function(err, result){
