@@ -7,56 +7,51 @@
  * return res.serverError();
  * return res.serverError(err);
  * return res.serverError(err, 'some/specific/error/view');
- *
- * NOTE:
- * If something throws in a policy or controller, or an internal
- * error is encountered, Sails will call `res.serverError()`
- * automatically.
  */
 module.exports = function serverError (data, options) {
 
-	// Get access to `req`, `res`, & `sails`
-  	var req = this.req;
-  	var res = this.res;
-  	console.log(this)
-  	res.status(500)
+  // Get access to `req`, `res`
+    var req = light._req;
+    var res = light._res;
 
-  	if (!data && !options) {
-  		return res.render('500.html');
-  	}
+    res.status(500)
 
-  	// log error
-  	light.log.error(data)
+    if (!data && !options) {
+      return res.render('500.html');
+    }
 
-  	// error: Error
-  	if (data instanceof Error) {
+    // log error
+    light.log.error(data)
 
-  		// when data is an object
-  		if (_.isPlainObject(options)) {
+    // error: Error
+    if (data instanceof Error) {
 
-  			// if option.view is set, render error in it
-  			if (options.view && _.isString(options.view)) {
-  				return res.render(options.view);
+      // when data is an object
+      if (_.isPlainObject(options)) {
 
-  			} else {
-  				return res.render('500.html');
-  			}
-  			
-  		} else {
+        // if option.view is set, render error in it
+        if (options.view && _.isString(options.view)) {
+          return res.render(options.view);
 
-  			// if string, it should be a view
-  			if (_.isString(options)) {
-  				return res.render(options);
+        } else {
+          return res.render('500.html');
+        }
+        
+      } else {
 
-  			} else {
-  				return res.render('500.html');
-  			}
-  		}
-  	}
+        // if string, it should be a view
+        if (_.isString(options)) {
+          return res.render(options);
 
-  	// error: json
-  	if (_.isPlainObject(data)) { 
-  		return res.json(data)
-  	}
+        } else {
+          return res.render('500.html');
+        }
+      }
+    }
+
+    // error: json
+    if (_.isPlainObject(data)) { 
+      return res.json(data)
+    }
 }
 

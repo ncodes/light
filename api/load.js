@@ -92,7 +92,7 @@ module.exports = function (app, nunjucksEnv) {
 
 						// add custom responses to response object
 						app.use(function(req, res, next){
-							_.extend(res, responses).res = res
+							_.extend(res, responses)
 							next();
 						})
 
@@ -152,6 +152,16 @@ module.exports = function (app, nunjucksEnv) {
 					light.config.bootstrap(function(){ done(null, true); })
 					delete light.config.bootstrap;
 				}
+			},
+
+			// expose response and request in global object
+			function ExposeReqResInLightObject(done) {
+				app.use(function(req, res, next){
+					light._req = req;
+					light._res = res;
+					next()
+				});
+				done()
 			}
 
 		], function(err, result){
