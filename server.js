@@ -7,11 +7,14 @@ var api			= require('./api')
 
 // define template
 app.use(express.static(__dirname + '/assets'));
-app.use(morgan('combined'))
 env = nunjucks.configure('views', {
     autoescape: true,
     watch: true,
-    express: app
+    express: app,
+    tags: {
+	    variableStart: '{{>',
+	    variableEnd: '}}'
+  	}
 });
 
 // load api (controllers, models, services, view helpers etc)

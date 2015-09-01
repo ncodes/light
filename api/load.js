@@ -9,7 +9,9 @@ var Promise = require('Bluebird'),
 	lodash	 = require('lodash'),
 	async	 = require('async'),
 	bodyParser 	= require('body-parser');
-	request	 = require('request');
+	request	 = require('request'),
+	morgan = require('morgan'),
+	log4js = require('log4js');
 
 // global config object
 global.light = { config: {}}
@@ -52,6 +54,14 @@ module.exports = function (app, nunjucksEnv) {
 	return new Promise(function(resolve, reject){
 		async.series([
 
+			// add logger
+			function AddLogger(done) {
+				app.use(morgan('dev'));
+				var logger = log4js.getLogger();
+				light.log = logger
+  				done()
+			},
+
 			// load modules
 			function LoadModules(done) {
 				Promise.join(
@@ -61,8 +71,9 @@ module.exports = function (app, nunjucksEnv) {
 					getDirModules('./app/models', 'models'),
 					getDirModules('./app/services', 'services'),
 					getDirModules('./app/policies', 'policies'),
+					getDirModules('./app/responses', 'responses'),
 
-					function(config, controllers, models, services, policies){
+					function(config, controllers, models, services, policies, responses){
 						
 						global.light.config = config;
 						global.controllers = controllers;
@@ -78,6 +89,12 @@ module.exports = function (app, nunjucksEnv) {
 						if (nunjucksEnv) {
 							nunjucksEnv.addGlobal('helper', global.services.view_helper || {})
 						}
+
+						// add custom responses to response object
+						app.use(function(req, res, next){
+							_.extend(res, responses).res = res
+							next();
+						})
 
 						done(null, true)
 				})

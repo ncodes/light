@@ -6,6 +6,7 @@
     "body-parser": "~1.0.1",
     "express": "~4.0.0",
     "express-validator": "^2.17.1",
+    "log4js": "^0.6.26",
     "mongoose": "~3.6.13"
   },
   "devDependencies": {
