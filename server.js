@@ -4,8 +4,6 @@ var nunjucks  	= require('nunjucks');
 var morgan 		= require('morgan');
 var con 		= require('consolidate');
 var api			= require('./api');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');	
 
 // configure nunjucks 
 var env = nunjucks.configure('views', {
@@ -20,22 +18,9 @@ var env = nunjucks.configure('views', {
 
 // load api (controllers, models, services, view helpers etc)
 api.load(app, env).then(function(){
-
-	var sess = {
-  		secret: "mysecret",
-  		saveUninitialized: false,
-  		resave: false,
-  		cookie: {}
-	}
 	
-	if (app.get('env') === 'production') {
-  		sess.cookie.secure = true;
-	}
-
 	// define template
 	app.use(express.static(__dirname + '/assets'));
-	app.use(cookieParser(light.config.cookSessSecret))
-	app.use(session(sess))
 
 	// configure app
 	var routes	= require('./app/config/routes');
@@ -45,6 +30,18 @@ api.load(app, env).then(function(){
 	
 	// Register routes
 	app.use('/', routes.root);
+
+	// handle 404 errors
+	app.use(function(req, res, next) {
+		light.log.error("Page not found");
+		res.notFound();
+	});
+
+	// delegate error handling to custom error handler
+	app.use(function(err, req, res, next) {
+		light.log.error(err);
+		res.serverError(err);
+	});
 
 	// start server
 	app.listen(port);
