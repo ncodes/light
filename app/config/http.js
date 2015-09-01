@@ -6,6 +6,10 @@
  */
 
 var expressValidator = require('express-validator');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');	
+var RedisStore = require('connect-redis')(session);
+
 
 module.exports = {
 
@@ -13,6 +17,8 @@ module.exports = {
 	// middlewares must be defined in `this.middleware` object
 	order: [
 		"bodyParser",
+		"cookieParser",
+		"session-redis",		// use `session` for MemoryStore session
 		"formValidation"
 		// "hello"
 	],
@@ -31,5 +37,6 @@ module.exports = {
 		// form validation
 		// repo: https://github.com/ctavan/express-validator
 		formValidation: expressValidator()
+
 	}
 }

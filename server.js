@@ -3,22 +3,39 @@ var app        	= express();
 var nunjucks  	= require('nunjucks'); 
 var morgan 		= require('morgan');
 var con 		= require('consolidate');
-var api			= require('./api')			
+var api			= require('./api');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');	
 
-// define template
-app.use(express.static(__dirname + '/assets'));
-env = nunjucks.configure('views', {
+// configure nunjucks 
+var env = nunjucks.configure('views', {
     autoescape: true,
     watch: true,
     express: app,
     tags: {
-	    variableStart: '{{>',
+	    variableStart: '{{>',	// replace to "{{" if you are not using angular in your view
 	    variableEnd: '}}'
   	}
 });
 
 // load api (controllers, models, services, view helpers etc)
 api.load(app, env).then(function(){
+
+	var sess = {
+  		secret: "mysecret",
+  		saveUninitialized: false,
+  		resave: false,
+  		cookie: {}
+	}
+	
+	if (app.get('env') === 'production') {
+  		sess.cookie.secure = true;
+	}
+
+	// define template
+	app.use(express.static(__dirname + '/assets'));
+	app.use(cookieParser(light.config.cookSessSecret))
+	app.use(session(sess))
 
 	// configure app
 	var routes	= require('./app/config/routes');

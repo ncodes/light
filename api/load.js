@@ -11,10 +11,14 @@ var Promise = require('Bluebird'),
 	bodyParser 	= require('body-parser');
 	request	 = require('request'),
 	morgan = require('morgan'),
-	log4js = require('log4js');
+	log4js = require('log4js'),
+	cookieParser = require('cookie-parser'),
+	session = require('express-session'),
+	RedisStore = require('connect-redis')(session);
 
 // global config object
 global.light = { config: {}}
+
 var Loader = {}
 
 // get all modules in a directory
@@ -124,14 +128,14 @@ module.exports = function (app, nunjucksEnv) {
 			// load environment config and extend existing config
 			function ExtendConfig(done) {
 
-				process.env.NODE_ENV = process.env.NODE_ENV || "development"
-
 				// if NODE_ENV environment is set, find the current environment specific config file and
 				// use extend light.config with this new file
-				if (process.env.NODE_ENV) {
+				if (app.get("env")) {
 					Loader.getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
-						var currentEnvConfig = envConfigModules[process.env.NODE_ENV];
-						_.extend(light.config, currentEnvConfig)
+						var currentEnvConfig = envConfigModules[app.get("env")];
+						_.keys(currentEnvConfig).forEach(function(key){
+							_.extend(light.config[key], currentEnvConfig[key])
+						})
 						return done(null, true)
 					}).catch(function(err){
 						return done(err)
@@ -146,9 +150,26 @@ module.exports = function (app, nunjucksEnv) {
 			function LoadMiddlewares(done) {
 
 				if (light.config.http) {
+					
 					var executionOrder = light.config.http.order || [ "bodyParser" ];
 					var middlewares = light.config.http.middlewares || {};
+					
+					// session options
+					var sessionOps = {
+				  		secret: light.config.session.secret,
+				  		saveUninitialized: light.config.session.saveUninitialized,
+				  		resave: light.config.session.resave,
+				  		cookie: {}
+					}
+
+					// in production: set cookie `secure` property to true
+					if (app.get('env') === 'production') {
+						light.log.debug("Alert!! Ensure https is enabled. Because session will not work in http connections")
+				  		sessionOps.cookie.secure = true;
+					}
+
 					executionOrder.forEach(function(name){
+						
 						switch (name) {
 							
 							case "bodyParser": // bodyParser (middleware is usually not defined in http.middlewares)
@@ -156,7 +177,23 @@ module.exports = function (app, nunjucksEnv) {
 								app.use(bodyParser.json());
 								break;
 
+							case "cookieParser": 
+								app.use(cookieParser(light.config.cookie.secret));
+								break;
+
+							case "session": 
+								app.use(session(sessionOps))
+								break;
+
+							case "session-redis": 
+								sessionOps.store = new RedisStore({
+									host: light.config.database.redis.host,
+									port: light.config.database.redis.port
+								});
+								app.use(session(sessionOps))
+
 							default:
+								// load all middlewares
 								if (middlewares[name]) {
 									app.use(middlewares[name])
 								}

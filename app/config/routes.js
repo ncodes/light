@@ -11,7 +11,7 @@ var express	= require('express');
 var rootRouter = express.Router();
 
 // define route
-rootRouter.get('/', api.helper.static('index.html', { name: "James Bradley" }))
+rootRouter.get('/', api.helper.static('index.html'));
 // rootRouter.get('/user', controllers.user.get)
 
 // exports routers
