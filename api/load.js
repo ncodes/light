@@ -3,18 +3,19 @@
  */
 
 var Promise = require('Bluebird'),
-	fs 	 = require('fs'),
-	path	 = require('path'),
-	Bluebird = require('Bluebird'),
-	lodash	 = require('lodash'),
-	async	 = require('async'),
-	bodyParser 	= require('body-parser');
-	request	 = require('request'),
-	morgan = require('morgan'),
-	log4js = require('log4js'),
-	cookieParser = require('cookie-parser'),
-	session = require('express-session'),
-	RedisStore = require('connect-redis')(session);
+	fs 	 			= require('fs'),
+	path	 		= require('path'),
+	Bluebird 		= require('Bluebird'),
+	lodash	 		= require('lodash'),
+	async	 		= require('async'),
+	bodyParser 		= require('body-parser');
+	request	 		= require('request'),
+	morgan 			= require('morgan'),
+	log4js 			= require('log4js'),
+	cookieParser 	= require('cookie-parser'),
+	session 		= require('express-session'),
+	RedisStore 		= require('connect-redis')(session),
+	flash 			= require('connect-flash');
 
 // global config object
 global.light = { config: {}}
@@ -77,6 +78,7 @@ Loader.filterObjectBySurfix = function (flatObject, surfix, removeSurfix, lowerC
 
 module.exports = function (app, nunjucksEnv) {
 	return new Promise(function(resolve, reject){
+		
 		async.series([
 
 			// add logger
@@ -190,7 +192,11 @@ module.exports = function (app, nunjucksEnv) {
 									host: light.config.database.redis.host,
 									port: light.config.database.redis.port
 								});
-								app.use(session(sessionOps))
+								app.use(session(sessionOps));
+								break
+
+							case "flash": 
+								app.use(flash());
 
 							default:
 								// load all middlewares

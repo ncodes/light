@@ -18,7 +18,8 @@ module.exports = {
 	order: [
 		"bodyParser",
 		"cookieParser",
-		"session-redis",		// use `session` for MemoryStore session
+		"session",		// use `session-redis` for redis store
+		"flash",
 		"formValidation"
 		// "hello"
 	],
