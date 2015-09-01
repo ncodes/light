@@ -15,9 +15,12 @@ var Promise = require('Bluebird'),
 
 // global config object
 global.light = { config: {}}
+var Loader = {}
 
 // get all modules in a directory
-function getDirModules(dirPath, moduleName, ignoreFiles) {
+// returns an object of directories associated with all contained module
+// e.g { dirName: { moduleFileA: module, moduleFileB: module }}
+Loader.getDirModules = function (dirPath, moduleName, ignoreFiles) {
 	
 	var ignoreFiles = ignoreFiles || ['gitignore','gitkeep'];
 	var moduleName = moduleName || "modules";
@@ -50,6 +53,24 @@ function getDirModules(dirPath, moduleName, ignoreFiles) {
 	});
 }
 
+// filter out keys that do not have a surfix.
+// if removeSurfix is set, it will remove the surfix from the key. (defaut: true)
+// if lowerCaseKey is set, it will convert final keys that matched the surfix to lowercase (default: true)
+Loader.filterObjectBySurfix = function (flatObject, surfix, removeSurfix, lowerCaseKey) {
+	var removeSurfix = (removeSurfix === undefined) ? true : removeSurfix;
+	var lowerCaseKey = (lowerCaseKey === undefined) ? true : lowerCaseKey;
+	var newObj = {};
+	lodash.keys(flatObject).forEach(function(key){
+		if (lodash.endsWith(key, surfix)) {
+			var val = flatObject[key];
+			key = (!removeSurfix) ? key : key.replace(new RegExp(surfix + "$"), "");
+			key = (!lowerCaseKey) ? key : key.toLowerCase();
+			newObj[key] = val;
+		}
+	});
+	return newObj;
+}
+
 module.exports = function (app, nunjucksEnv) {
 	return new Promise(function(resolve, reject){
 		async.series([
@@ -66,20 +87,20 @@ module.exports = function (app, nunjucksEnv) {
 			function LoadModules(done) {
 				Promise.join(
 
-					getDirModules('./app/config', 'config', ['routes.js']),
-					getDirModules('./app/controllers', 'controllers'),
-					getDirModules('./app/models', 'models'),
-					getDirModules('./app/services', 'services'),
-					getDirModules('./app/policies', 'policies'),
-					getDirModules('./app/responses', 'responses'),
+					Loader.getDirModules('./app/config', 'config', ['routes.js']),
+					Loader.getDirModules('./app/controllers', 'controllers'),
+					Loader.getDirModules('./app/models', 'models'),
+					Loader.getDirModules('./app/services', 'services'),
+					Loader.getDirModules('./app/policies', 'policies'),
+					Loader.getDirModules('./app/responses', 'responses'),
 
 					function(config, controllers, models, services, policies, responses){
 						
 						global.light.config = config;
-						global.controllers = controllers;
+						global.controllers = Loader.filterObjectBySurfix(controllers, "Controller");
 						global.models = models;
-						global.services = services;
-						global.policies = policies;
+						global.services = Loader.filterObjectBySurfix(services, "Service");
+						global.policies = Loader.filterObjectBySurfix(policies, "Policy");
 						global._ = lodash;
 						global.async = async;
 						global.request = request
@@ -87,7 +108,7 @@ module.exports = function (app, nunjucksEnv) {
 						// add nunjucks view helper
 						// expects view helper file to be in services folder
 						if (nunjucksEnv) {
-							nunjucksEnv.addGlobal('helper', global.services.view_helper || {})
+							nunjucksEnv.addGlobal('helper', global.light.config.view_helpers || {})
 						}
 
 						// add custom responses to response object
@@ -108,7 +129,7 @@ module.exports = function (app, nunjucksEnv) {
 				// if NODE_ENV environment is set, find the current environment specific config file and
 				// use extend light.config with this new file
 				if (process.env.NODE_ENV) {
-					getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
+					Loader.getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
 						var currentEnvConfig = envConfigModules[process.env.NODE_ENV];
 						_.extend(light.config, currentEnvConfig)
 						return done(null, true)
