@@ -90,20 +90,46 @@ module.exports = function (app, nunjucksEnv) {
   				done()
 			},
 
+			// load configurations
+			function LoadConfig(done) {
+				Loader.getDirModules('./app/config', 'config', ['routes.js']).then(function(config){
+					global.light.config = config;
+					return done(null, true);
+				}).catch(done);
+			},
+
+			// load environment config and extend existing config
+			function ExtendConfig(done) {
+				
+				// if NODE_ENV environment is set, find the current environment specific config file and
+				// use extend light.config with this new file
+				if (app.get("env")) {
+					Loader.getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
+						var currentEnvConfig = envConfigModules[app.get("env")];
+						lodash.keys(currentEnvConfig).forEach(function(key){
+							lodash.extend(light.config[key], currentEnvConfig[key])
+						})
+						return done(null, true)
+					}).catch(function(err){
+						return done(err)
+					});
+				} else {
+					return done(null, true)
+				}
+			},
+
 			// load modules
 			function LoadModules(done) {
 				Promise.join(
 
-					Loader.getDirModules('./app/config', 'config', ['routes.js']),
 					Loader.getDirModules('./app/controllers', 'controllers'),
 					Loader.getDirModules('./app/models', 'models'),
 					Loader.getDirModules('./app/services', 'services'),
 					Loader.getDirModules('./app/policies', 'policies'),
 					Loader.getDirModules('./app/responses', 'responses'),
 
-					function(config, controllers, models, services, policies, responses){
+					function(controllers, models, services, policies, responses){
 						
-						global.light.config = config;
 						global.controllers = Loader.filterObjectBySurfix(controllers, "Controller");
 						global.models = models;
 						global.services = Loader.filterObjectBySurfix(services, "Service");
@@ -116,7 +142,7 @@ module.exports = function (app, nunjucksEnv) {
 						// add nunjucks view helper
 						// expects view helper file to be in services folder
 						if (nunjucksEnv) {
-							nunjucksEnv.addGlobal('helper', global.light.config.view_helpers || {})
+							nunjucksEnv.addGlobal('helper', light.config.view_helpers || {})
 						}
 
 						// add custom responses to response object
@@ -127,26 +153,6 @@ module.exports = function (app, nunjucksEnv) {
 
 						done(null, true)
 				})
-			},
-
-			// load environment config and extend existing config
-			function ExtendConfig(done) {
-
-				// if NODE_ENV environment is set, find the current environment specific config file and
-				// use extend light.config with this new file
-				if (app.get("env")) {
-					Loader.getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
-						var currentEnvConfig = envConfigModules[app.get("env")];
-						_.keys(currentEnvConfig).forEach(function(key){
-							_.extend(light.config[key], currentEnvConfig[key])
-						})
-						return done(null, true)
-					}).catch(function(err){
-						return done(err)
-					});
-				} else {
-					return done(null, true)
-				}
 			},
 
 			// load middlewares. Middlewares and their load order must
