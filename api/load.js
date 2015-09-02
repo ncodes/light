@@ -15,7 +15,8 @@ var Promise = require('Bluebird'),
 	cookieParser 	= require('cookie-parser'),
 	session 		= require('express-session'),
 	RedisStore 		= require('connect-redis')(session),
-	flash 			= require('connect-flash');
+	flash 			= require('connect-flash'),
+	util 			= require('util');
 
 // global config object
 global.light = { config: {}}
@@ -109,7 +110,8 @@ module.exports = function (app, nunjucksEnv) {
 						global.policies = Loader.filterObjectBySurfix(policies, "Policy");
 						global._ = lodash;
 						global.async = async;
-						global.request = request
+						global.request = request;
+						global.util = util;
 						
 						// add nunjucks view helper
 						// expects view helper file to be in services folder
