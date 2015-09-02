@@ -61,16 +61,16 @@ Loader.getDirModules = function (dirPath, moduleName, ignoreFiles) {
 
 // filter out keys that do not have a surfix.
 // if removeSurfix is set, it will remove the surfix from the key. (defaut: true)
-// if lowerCaseKey is set, it will convert final keys that matched the surfix to lowercase (default: true)
-Loader.filterObjectBySurfix = function (flatObject, surfix, removeSurfix, lowerCaseKey) {
+// if camelCaseKey is set, it will convert final keys that matched the surfix to camel case (default: true)
+Loader.filterObjectBySurfix = function (flatObject, surfix, removeSurfix, camelCaseKey) {
 	var removeSurfix = (removeSurfix === undefined) ? true : removeSurfix;
-	var lowerCaseKey = (lowerCaseKey === undefined) ? true : lowerCaseKey;
+	var camelCaseKey = (camelCaseKey === undefined) ? true : camelCaseKey;
 	var newObj = {};
 	lodash.keys(flatObject).forEach(function(key){
 		if (lodash.endsWith(key, surfix)) {
 			var val = flatObject[key];
 			key = (!removeSurfix) ? key : key.replace(new RegExp(surfix + "$"), "");
-			key = (!lowerCaseKey) ? key : key.toLowerCase();
+			key = (!camelCaseKey) ? key : lodash.camelCase(key);
 			newObj[key] = val;
 		}
 	});
