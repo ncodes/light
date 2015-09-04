@@ -5,7 +5,6 @@
 var Promise = require('Bluebird'),
 	fs 	 			= require('fs'),
 	path	 		= require('path'),
-	Bluebird 		= require('Bluebird'),
 	lodash	 		= require('lodash'),
 	async	 		= require('async'),
 	bodyParser 		= require('body-parser');
@@ -31,7 +30,7 @@ Loader.getDirModules = function (dirPath, moduleName, ignoreFiles) {
 	var ignoreFiles = ignoreFiles || ['gitignore','gitkeep'];
 	var moduleName = moduleName || "modules";
 	
-	return new Bluebird(function(resolve, reject){
+	return new Promise(function(resolve, reject){
 		
 		// holds modules in current directory
 		var modules = {}
