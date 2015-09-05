@@ -16,6 +16,11 @@ module.exports = {
 		return (msg) ? msg : '';
 	},
 
+	// http helper
+	http: {
+		req: light._req
+	},
+
 	// session helper (only read-only access)
 	session: {
 		
