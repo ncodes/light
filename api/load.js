@@ -141,7 +141,9 @@ module.exports = function (app, nunjucksEnv) {
 						// add nunjucks view helper
 						// expects view helper file to be in services folder
 						if (nunjucksEnv) {
-							nunjucksEnv.addGlobal('helper', light.config.view_helpers || {})
+							var viewObj = light.config.view_helpers || {}
+							nunjucksEnv.addGlobal('helper', viewObj);		// deprecated
+							nunjucksEnv.addGlobal('view', viewObj);
 						}
 
 						// add custom responses to response object
