@@ -18,7 +18,9 @@ module.exports = {
 
 	// http helper
 	http: {
-		req: light._req
+		getReq: function() {
+			return light._req;
+		}
 	},
 
 	// session helper (only read-only access)
