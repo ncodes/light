@@ -12,7 +12,8 @@
     "express-session": "^1.11.3",
     "express-validator": "^2.17.1",
     "log4js": "^0.6.26",
-    "mongoose": "~3.6.13"
+    "mongoose": "~3.6.13",
+    "yargs": "^3.24.0"
   },
   "devDependencies": {
     "express-validator": "^2.17.1",
