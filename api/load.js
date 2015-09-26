@@ -166,11 +166,12 @@ module.exports = function (app, nunjucksEnv) {
 					var middlewares = light.config.http.middlewares || {};
 					
 					// session options
+					var config = light.config
 					var sessionOps = {
-				  		secret: light.config.session.secret,
-				  		saveUninitialized: light.config.session.saveUninitialized,
-				  		resave: light.config.session.resave,
-				  		cookie: {}
+				  		secret: config.session.secret,
+				  		saveUninitialized: config.session.saveUninitialized,
+				  		resave: config.session.resave,
+				  		cookie: { maxAge: config.cookie.maxAge || null }
 					}
 
 					// in production: set cookie `secure` property to true

@@ -4,6 +4,12 @@
 
 module.exports = {
 	
+	// expose app config to view
+	appConfig: function() {
+		return light.config
+	},
+
+	// log debug message
 	log: function(m){
 		light.log.debug(m)
 	},
