@@ -10,7 +10,7 @@
 	 	return function(req, res, next) {
 			var flashData = req.flash() || {};
 	 		_.extend(data, flashData)
-	 		res.render(viewName, flashData)
+	 		res.show(viewName, flashData)
 	 	}
 	 }
 }

@@ -235,7 +235,22 @@ module.exports = function (app, nunjucksEnv) {
 					light._res = res;
 					next()
 				});
-				done()
+				done();
+			},
+
+			// modify res.render to not prepend view file extention when not present.
+			// The extension to prepend can be set in light.config.app.viewExt or 'html' is used
+			function PrependViewFieldExtention(done) {
+				app.use(function(req, res, next){
+					res.show = function (viewFileName, obj) {
+						if (viewFileName.indexOf(".") === -1) {
+							viewFileName = viewFileName += "." + (light.config.app.viewExt || "html")
+						}
+						return res.render(viewFileName, obj)
+					}
+					next()
+				});
+				done();
 			}
 
 		], function(err, result){
