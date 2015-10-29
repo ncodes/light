@@ -97,6 +97,16 @@ module.exports = function (app, nunjucksEnv) {
 				}).catch(done);
 			},
 
+			// expose response and request in global object
+			function ExposeReqResInLightObject(done) {
+				app.use(function(req, res, next){
+					light._req = req;
+					light._res = res;
+					next()
+				});
+				done();
+			},
+
 			// load environment config and extend existing config
 			function ExtendConfig(done) {
 				
@@ -226,16 +236,6 @@ module.exports = function (app, nunjucksEnv) {
 					light.config.bootstrap(function(){ done(null, true); })
 					delete light.config.bootstrap;
 				}
-			},
-
-			// expose response and request in global object
-			function ExposeReqResInLightObject(done) {
-				app.use(function(req, res, next){
-					light._req = req;
-					light._res = res;
-					next()
-				});
-				done();
 			},
 
 			// modify res.render to not prepend view file extention when not present.

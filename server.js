@@ -48,3 +48,5 @@ api.load(app, env).then(function(){
 	app.listen(port);
 	console.log('Server started on port:' + port);
 });
+
+module.exports = app;
