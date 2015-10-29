@@ -2,51 +2,33 @@
  * Extracted from sails.js
  *
  * 500 (Server Error) Response
- *
- * Usage:
- * return res.serverError();
- * return res.serverError(err);
- * return res.serverError(err, 'some/specific/error/view');
  */
 module.exports = function serverError (data, options) {
 
-  // Get access to `req`, `res`
+    // Get access to `req`, `res`
     var req = light._req;
     var res = light._res;
 
     res.status(500)
 
     if (!data && !options) {
-      return res.render('500.html');
+        return res.render('500.html');
     }
 
     // log error
     light.log.error(data)
 
-    // error: Error
+    // if error is Error()
     if (data instanceof Error) {
 
-      // when data is an object
-      if (_.isPlainObject(options)) {
+        if (req.headers['content-type'] == "application/json") {
+            return res.json({
+                type: "api_error",
+                message: "something went wrong at our end"
+            })
+        } 
 
-        // if option.view is set, render error in it
-        if (options.view && _.isString(options.view)) {
-          return res.render(options.view);
-
-        } else {
-          return res.render('500.html');
-        }
-        
-      } else {
-
-        // if string, it should be a view
-        if (_.isString(options)) {
-          return res.render(options);
-
-        } else {
-          return res.render('500.html');
-        }
-      }
+        return res.render('500.html');
     }
 
     // error: json
