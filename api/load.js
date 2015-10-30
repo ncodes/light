@@ -83,7 +83,12 @@ module.exports = function (app, nunjucksEnv) {
 
 			// add logger
 			function AddLogger(done) {
-				app.use(morgan('dev'));
+
+				// do not add logger in test environment
+				if (app.get("env") !== "test"){
+					app.use(morgan('dev'));
+				}
+				
 				var logger = log4js.getLogger();
 				light.log = logger
   				done()
@@ -196,7 +201,7 @@ module.exports = function (app, nunjucksEnv) {
 							
 							case "bodyParser": // bodyParser (middleware is usually not defined in http.middlewares)
 								app.use(bodyParser.urlencoded({ extended: true }));
-								app.use(bodyParser.json());
+								app.use(bodyParser.json({ limit: '10mb' }));
 								break;
 
 							case "cookieParser": 
