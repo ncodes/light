@@ -1,7 +1,7 @@
 {
   "name": "node-api",
   "main": "server.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "bcrypt": "^0.8.5",
     "body-parser": "~1.0.1",
@@ -13,6 +13,8 @@
     "express-validator": "^2.17.1",
     "log4js": "^0.6.26",
     "mongoose": "~3.6.13",
+    "react": "^0.14.3",
+    "react-dom": "^0.14.3",
     "yargs": "^3.24.0"
   },
   "devDependencies": {

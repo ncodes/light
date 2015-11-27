@@ -3,12 +3,61 @@ var path = require('path');
 var gulp = require("gulp");
 var rename = require("gulp-rename");
 var nodemon = require('gulp-nodemon');
+var browserify = require('browserify');
+var reactify = require('reactify');
+var notifier = require('node-notifier');
+var source = require('vinyl-source-stream');
 var yargs   = require('yargs').argv;
- 
+
 var nodeMonArgs = [];
-if (yargs.port) {
+if (yargs.port)
     nodeMonArgs = nodeMonArgs.concat(['--port', yargs.port.toString() ]) 
+
+var errorNotify = function(error) {
+  var message = 'In: ';
+  var title = 'Error: ';
+
+  if(error.description) {
+    title += error.description;
+  } else if (error.message) {
+    title += error.message;
+  }
+
+  if(error.filename) {
+    var file = error.filename.split('/');
+    message += file[file.length-1];
+  }
+
+  if(error.lineNumber) {
+    message += '\nOn Line: ' + error.lineNumber;
+  }
+
+  notifier.notify({title: title, message: message});
+};
+
+var b = browserify({
+    entries: ['./assets/jsx/app.jsx'],
+    transform: [reactify],
+    extensions: ['.jsx'],
+    debug: true,
+    cache: {},
+    packageCache: {},
+    fullPaths: true
+});
+
+b.on('update', bundle);
+bundle();
+
+function bundle() {
+  return b.bundle()
+    .on('error', errorNotify)
+    .pipe(source('main.js'))
+    .pipe(gulp.dest('./assets/js/dist'))
 }
+
+gulp.task('build', function() {
+  bundle()
+});
 
 gulp.task('less', function () {
   return gulp.src('./assets/css/import.less')
@@ -21,10 +70,11 @@ gulp.task('less', function () {
 
 gulp.task('develop', function () {
   nodemon({ script: 'server.js'
-          , ext: 'html js less'
+          , ext: 'html js less jsx'
+          , ignore: ['assets/js/dist/*']
           , args: nodeMonArgs
-          , tasks: ['less'] })
+          , tasks: ['less', "build"] })
     .on('restart', function () {
       console.log('restarted!')
     })
-})
+});
