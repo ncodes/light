@@ -2,7 +2,7 @@
  * Load controllers, models, services etc
  */
 
-var Promise = require('Bluebird'),
+var Promise = require('bluebird'),
 	fs 	 			= require('fs'),
 	path	 		= require('path'),
 	lodash	 		= require('lodash'),
