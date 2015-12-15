@@ -7,11 +7,13 @@ var browserify = require('browserify');
 var reactify = require('reactify');
 var notifier = require('node-notifier');
 var source = require('vinyl-source-stream');
+var colors = require('colors');
 var yargs   = require('yargs').argv;
 
 var nodeMonArgs = [];
 if (yargs.port)
     nodeMonArgs = nodeMonArgs.concat(['--port', yargs.port.toString() ]) 
+
 
 var errorNotify = function(error) {
   var message = 'In: ';
@@ -32,31 +34,24 @@ var errorNotify = function(error) {
     message += '\nOn Line: ' + error.lineNumber;
   }
 
-  notifier.notify({title: title, message: message});
+  var e = {title: title, message: message};
+  console.error(e)
+  notifier.notify(e);
 };
+
 
 var b = browserify({
     entries: ['./assets/jsx/app.jsx'],
     transform: [reactify],
     extensions: ['.jsx'],
-    debug: true,
-    cache: {},
-    packageCache: {},
-    fullPaths: true
+    debug: true 
 });
 
-b.on('update', bundle);
-bundle();
-
-function bundle() {
-  return b.bundle()
+gulp.task('build', function() {
+    b.bundle()
     .on('error', errorNotify)
     .pipe(source('main.js'))
     .pipe(gulp.dest('./assets/js/dist'))
-}
-
-gulp.task('build', function() {
-  bundle()
 });
 
 gulp.task('less', function () {
