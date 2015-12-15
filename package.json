@@ -15,6 +15,7 @@
     "log4js": "^0.6.26",
     "mongoose": "~3.6.13",
     "node-notifier": "^4.4.0",
+    "nunjucks": "^2.2.0",
     "react": "^0.14.3",
     "react-dom": "^0.14.3",
     "reactify": "^1.1.1",
