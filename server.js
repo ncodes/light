@@ -2,7 +2,6 @@ var express    	= require('express');
 var app        	= express();                
 var nunjucks  	= require('nunjucks'); 
 var morgan 		= require('morgan');
-var con 		= require('consolidate');
 var api			= require('./api');
 var yargs 		= require('yargs').argv;
 
@@ -27,7 +26,7 @@ api.load(app, env).then(function(){
 	var routes	= require('./app/config/routes');
 	
 	// set port
-	var port = process.env.PORT || yargs.port || 1337; 
+	var port = yargs.port || process.env.PORT || 1337; 
 	
 	// Register routes
 	app.use('/', routes.root);
