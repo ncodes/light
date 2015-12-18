@@ -180,23 +180,24 @@ module.exports = function (app, nunjucksEnv) {
 					
 					var executionOrder = light.config.http.order || [ "bodyParser" ];
 					var middlewares = light.config.http.middlewares || {};
-					var securedCookie = light.config.cookie.securedCookie;
 					
 					// session options
-					var config = light.config
+					var config = light.config;
 					var sessionOps = {
 				  		secret: config.session.secret,
 				  		saveUninitialized: config.session.saveUninitialized,
 				  		resave: config.session.resave,
-				  		cookie: { maxAge: config.cookie.maxAge || null, secure: securedCookie }
+				  		cookie: { maxAge: config.cookie.maxAge || null }
 					}
 
 					// in production: set cookie `secure` property to true
 					if (app.get('env') === 'production') {
-						light.log.debug("Alert!! Ensure https is enabled. Because session will not work in http connections")
-				  		sessionOps.cookie.secure = true;
+						if (light.config.cookie.securedCookie) {
+					  		sessionOps.cookie.secure = true;
+					  		app.set('trust proxy', 1);
+						}
 					}
-
+					
 					executionOrder.forEach(function(name){
 						
 						switch (name) {
@@ -215,9 +216,7 @@ module.exports = function (app, nunjucksEnv) {
 								break;
 
 							case "session-redis": 
-								sessionOps.store = new RedisStore({
-									client: redisClient
-								});
+								sessionOps.store = new RedisStore({ client: redisClient });
 								app.use(session(sessionOps));
 								break
 
