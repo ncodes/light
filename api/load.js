@@ -2,7 +2,7 @@
  * Load controllers, models, services etc
  */
 
-var Promise = require('bluebird'),
+var Promise 		= require('bluebird'),
 	fs 	 			= require('fs'),
 	path	 		= require('path'),
 	lodash	 		= require('lodash'),
@@ -15,7 +15,8 @@ var Promise = require('bluebird'),
 	session 		= require('express-session'),
 	RedisStore 		= require('connect-redis')(session),
 	flash 			= require('connect-flash'),
-	util 			= require('util');
+	util 			= require('util'),
+	redisClient		= require('redis-url').connect();
 
 // global config object
 global.light = { config: {}}
@@ -179,6 +180,7 @@ module.exports = function (app, nunjucksEnv) {
 					
 					var executionOrder = light.config.http.order || [ "bodyParser" ];
 					var middlewares = light.config.http.middlewares || {};
+					var securedCookie = light.config.cookie.securedCookie;
 					
 					// session options
 					var config = light.config
@@ -186,7 +188,7 @@ module.exports = function (app, nunjucksEnv) {
 				  		secret: config.session.secret,
 				  		saveUninitialized: config.session.saveUninitialized,
 				  		resave: config.session.resave,
-				  		cookie: { maxAge: config.cookie.maxAge || null }
+				  		cookie: { maxAge: config.cookie.maxAge || null, secure: securedCookie }
 					}
 
 					// in production: set cookie `secure` property to true
@@ -214,8 +216,7 @@ module.exports = function (app, nunjucksEnv) {
 
 							case "session-redis": 
 								sessionOps.store = new RedisStore({
-									host: light.config.database.redis.host,
-									port: light.config.database.redis.port
+									client: redisClient
 								});
 								app.use(session(sessionOps));
 								break
