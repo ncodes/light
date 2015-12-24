@@ -4,7 +4,8 @@ var gulp = require("gulp");
 var rename = require("gulp-rename");
 var nodemon = require('gulp-nodemon');
 var yargs   = require('yargs').argv;
- 
+var env = require('gulp-env');
+
 var nodeMonArgs = [];
 if (yargs.port) {
     nodeMonArgs = nodeMonArgs.concat(['--port', yargs.port.toString() ]) 
@@ -20,6 +21,12 @@ gulp.task('less', function () {
 });
 
 gulp.task('develop', function () {
+
+  // set environment variable
+  env({
+    file: '.env.js'
+  });
+  
   nodemon({ script: 'server.js'
           , ext: 'html js less'
           , args: nodeMonArgs
