@@ -44,11 +44,8 @@ api.load(app, env).then(function(){
 	});
 
 	// start server
-	// app.listen(port);
-	// console.log('Server started on port:' + port);
-
-	// start mail server
-	services.mail.serve({})
+	app.listen(port);
+	console.log('Server started on port:' + port);
 });
 
 module.exports = app;
