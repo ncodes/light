@@ -16,7 +16,7 @@ var Promise 		= require('bluebird'),
 	RedisStore 		= require('connect-redis')(session),
 	flash 			= require('connect-flash'),
 	util 			= require('util'),
-	redisClient		= require('redis-url').connect();
+	redisURL 		= require('redis-url');
 
 // global config object
 global.light = { config: {}}
@@ -215,7 +215,17 @@ module.exports = function (app, nunjucksEnv) {
 								app.use(session(sessionOps))
 								break;
 
-							case "session-redis": 
+							case "session-redis":
+
+								// create redis connection
+								var redisClient = redisURL.connect(light.config.database.REDIS_URL)
+								redisClient.on("error", function (err) {
+								    console.error("> RedisError:", err.message, err.code)
+								    if (err.code === "NOAUTH") {
+								    	console.error("  Ensure your redis database password is correct")
+								    }
+								    process.exit(-1)
+								});
 								sessionOps.store = new RedisStore({ client: redisClient });
 								app.use(session(sessionOps));
 								break

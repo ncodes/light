@@ -4,12 +4,6 @@
 
 module.exports = {
 	
-	redis: {
-
-		// hostname
-	 	host: process.env.REDIS_HOST || 'localhost',
-
-	 	// port
-	 	port: process.env.REDIS_PORT ||  6379
-	}
+	// redis connection string
+	REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379"
 }
