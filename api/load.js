@@ -87,6 +87,7 @@ Loader.filterObjectBySurfix = function (flatObject, surfix, removeSurfix, camelC
 module.exports = function (lightConfig, app, nunjucksEnv) {
 	return new Promise(function(resolve, reject){
 
+		light._config = lightConfig;
 		var appName = lightConfig.get("appName") || "LightApp";
 		var appDir = lightConfig.get("appDir");
 		var configDir = lightConfig.get("_light:directories:config");
@@ -118,7 +119,6 @@ module.exports = function (lightConfig, app, nunjucksEnv) {
 			// load configurations
 			function LoadConfig(done) {
 				Loader.getDirModules(fullConfigDir, 'config', ['routes.js']).then(function(config){
-					global.light._config = lightConfig.get();
 					global.light.config = config;
 					return done(null, true);
 				}).catch(done);
