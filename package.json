@@ -1,7 +1,7 @@
 {
   "name": "node-light",
   "main": "index.js",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "dependencies": {
     "async": "^1.5.2",
     "basic-auth": "^1.0.3",
@@ -42,15 +42,5 @@
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.6.1",
     "yargs": "^3.24.0"
-  },
-  "devDependencies": {
-    "after": "^0.8.1",
-    "gulp": "^3.9.0",
-    "gulp-env": "^0.2.0",
-    "gulp-less": "^3.0.3",
-    "gulp-nodemon": "^2.0.4",
-    "gulp-rename": "^1.2.2",
-    "should": "^7.1.1",
-    "supertest": "^1.1.0"
   }
 }

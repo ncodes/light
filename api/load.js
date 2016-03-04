@@ -118,7 +118,7 @@ module.exports = function (lightConfig, app, nunjucksEnv) {
 			// load configurations
 			function LoadConfig(done) {
 				Loader.getDirModules(fullConfigDir, 'config', ['routes.js']).then(function(config){
-					global.light.config = lodash.extend(config, lightConfig.get()) 	// merge config with light config
+					global.light.config = lodash.extend(lightConfig.get(), config) 	// merge config with light config
 					return done(null, true);
 				}).catch(done);
 			},
