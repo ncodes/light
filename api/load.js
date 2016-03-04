@@ -22,7 +22,7 @@ var Promise 		= require('bluebird'),
 	redisURL 		= require('redis-url');
 
 // global config object
-global.light = { config: {}}
+global.light = { config: {}, _config: {} }
 
 var Loader = {}
 
@@ -118,7 +118,8 @@ module.exports = function (lightConfig, app, nunjucksEnv) {
 			// load configurations
 			function LoadConfig(done) {
 				Loader.getDirModules(fullConfigDir, 'config', ['routes.js']).then(function(config){
-					global.light.config = lodash.extend(lightConfig.get(), config) 	// merge config with light config
+					global.light.config = config;
+					global.light._config = lightConfig.get();
 					return done(null, true);
 				}).catch(done);
 			},
