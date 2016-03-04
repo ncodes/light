@@ -158,7 +158,6 @@ module.exports = function (lightConfig, app, nunjucksEnv) {
 			// load modules
 			function LoadModules(done) {
 				Promise.join(
-
 					Loader.getDirModules(path.join(appDir, "app", "controllers"), "controllers"),
 					Loader.getDirModules(path.join(appDir, "app", "models"), 'models'),
 					Loader.getDirModules(path.join(appDir, "app", "services"), 'services'),

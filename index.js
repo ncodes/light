@@ -6,7 +6,6 @@ var nunjucks  	= require('nunjucks');
 var morgan 		= require('morgan');
 var api			= require('./api');
 var path 		= require("path");
-var yargs 		= require('yargs').argv;
 module.exports = Light;
 
 Light.on = function(appDir, cb) {
@@ -17,7 +16,7 @@ Light.on = function(appDir, cb) {
 	nconf.argv().env().file(lightConfigPath);
 	nconf.set("appDir", appDir);
 	var appConfigDir = path.join(appDir, nconf.get("_light:directories:config"));
-	
+
 	// setup nunjucks template
 	var env = nunjucks.configure(path.join(appDir, 'views'), {
 	    autoescape: nconf.get("_light:nunjucks:escape"),
@@ -37,15 +36,9 @@ Light.on = function(appDir, cb) {
 		// configure app
 		var routes	= require(path.join(appConfigDir, "routes"));
 		
-		// set port
-		var port = yargs.port || light.config.PORT || 1337; 
-		
 		// Register routes
 		app.use('/', routes.root);
 
-		// start server
-		app.listen(port);
-		console.log('Server started on port:' + port);
 		return cb(null, app)
 
 	}).catch(function(err){
