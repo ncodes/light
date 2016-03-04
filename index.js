@@ -17,9 +17,9 @@ Light.on = function(appDir, cb) {
 	nconf.argv().env().file(lightConfigPath);
 	nconf.set("appDir", appDir);
 	var appConfigDir = path.join(appDir, nconf.get("_light:directories:config"));
-
+	console.log(path.join(appDir, 'views'))
 	// setup nunjucks template
-	var env = nunjucks.configure('views', {
+	var env = nunjucks.configure(path.join(appDir, 'views'), {
 	    autoescape: nconf.get("_light:nunjucks:escape"),
 	    watch: nconf.get("_light:nunjucks:watch"),
 	    express: app,
