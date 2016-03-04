@@ -118,8 +118,8 @@ module.exports = function (lightConfig, app, nunjucksEnv) {
 			// load configurations
 			function LoadConfig(done) {
 				Loader.getDirModules(fullConfigDir, 'config', ['routes.js']).then(function(config){
-					global.light.config = config;
 					global.light._config = lightConfig.get();
+					global.light.config = config;
 					return done(null, true);
 				}).catch(done);
 			},
