@@ -87,7 +87,7 @@ Loader.filterObjectBySurfix = function (flatObject, surfix, removeSurfix, camelC
 module.exports = function (lightConfig, app, nunjucksEnv) {
 	return new Promise(function(resolve, reject){
 
-		light._config = lightConfig;
+		light._config = lightConfig.get();
 		var appName = lightConfig.get("appName") || "LightApp";
 		var appDir = lightConfig.get("appDir");
 		var configDir = lightConfig.get("_light:directories:config");
