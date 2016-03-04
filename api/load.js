@@ -16,6 +16,9 @@ var Promise 		= require('bluebird'),
 	RedisStore 		= require('connect-redis')(session),
 	flash 			= require('connect-flash'),
 	util 			= require('util'),
+	nconf 			= require('nconf'),
+	bunyan 			= require('bunyan'),
+	Logger			= require('./logger'),
 	redisURL 		= require('redis-url');
 
 // global config object
@@ -29,7 +32,6 @@ var Loader = {}
 Loader.getDirModules = function (dirPath, moduleName, ignoreFiles) {
 	
 	var ignoreFiles = ignoreFiles || ['gitignore','gitkeep'];
-	var moduleName = moduleName || "modules";
 	
 	return new Promise(function(resolve, reject){
 		
@@ -39,7 +41,12 @@ Loader.getDirModules = function (dirPath, moduleName, ignoreFiles) {
 		// read contents in directory
 		fs.readdir(dirPath, function(err, files) {
 			
-			if (err) return reject("Error occurred while trying to load " + moduleName + " from dir " + dirPath + " " + err)
+			if (err) {
+				return reject({ 
+					moduleName: moduleName,
+					message: "Unable to load directory => " + dirPath
+				});
+			}
 		    
 		    // remove any file that matches the ignore file list
 			// also ignore directories. Also ignore files with _ prefix
@@ -49,7 +56,7 @@ Loader.getDirModules = function (dirPath, moduleName, ignoreFiles) {
 		   
 		    // load module
 		    files.forEach(function(file){
-    			var m = require('.' + dirPath + '/' + file)
+    			var m = require(path.join(dirPath, file))
 		    	var modParse = path.parse(file)
 		    	modules[modParse.name] = m
 		    });
@@ -77,12 +84,25 @@ Loader.filterObjectBySurfix = function (flatObject, surfix, removeSurfix, camelC
 	return newObj;
 }
 
-module.exports = function (app, nunjucksEnv) {
+module.exports = function (lightConfig, app, nunjucksEnv) {
 	return new Promise(function(resolve, reject){
-		
+
+		var appName = lightConfig.get("appName") || "LightApp";
+		var appDir = lightConfig.get("appDir");
+		var configDir = lightConfig.get("_light:directories:config");
+		var fullConfigDir = path.join(appDir, configDir);
+
 		async.series([
 
-			// add logger
+			// bunyan logger
+			function LoadBunyanLogger(done) {
+				var logs = [{ type: 'stdout', format: 'pretty', level: 'debug' }];
+				Logger.setup(appName, logs)
+				global.log = Logger.logger;
+				done()
+			},
+
+			// add an express logger
 			function AddLogger(done) {
 
 				// do not add logger in test environment
@@ -97,8 +117,8 @@ module.exports = function (app, nunjucksEnv) {
 
 			// load configurations
 			function LoadConfig(done) {
-				Loader.getDirModules('./app/config', 'config', ['routes.js']).then(function(config){
-					global.light.config = config;
+				Loader.getDirModules(fullConfigDir, 'config', ['routes.js']).then(function(config){
+					global.light.config = lodash.extend(config, lightConfig.get()) 	// merge config with light config
 					return done(null, true);
 				}).catch(done);
 			},
@@ -113,20 +133,21 @@ module.exports = function (app, nunjucksEnv) {
 				done();
 			},
 
-			// load environment config and extend existing config
+			// load specific environment configuration files 
+			// from the '/config/env' directory and extend global config object.
+			// This is optional feature. The '/config/env' directory need not to be provided.
 			function ExtendConfig(done) {
-				
-				// if NODE_ENV environment is set, find the current environment specific config file and
-				// use extend light.config with this new file
 				if (app.get("env")) {
-					Loader.getDirModules('./app/config/env', 'envConfigModules').then(function(envConfigModules){
+					Loader.getDirModules(path.join(fullConfigDir, "env"), 'envConfigModules').then(function(envConfigModules){
 						var currentEnvConfig = envConfigModules[app.get("env")];
 						lodash.keys(currentEnvConfig).forEach(function(key){
 							lodash.extend(light.config[key], currentEnvConfig[key])
 						})
 						return done(null, true)
 					}).catch(function(err){
-						return done(err)
+						// log warning and move on...
+						log.warn("Light.ExtendConfig:", err.message)
+						return done(null, true)
 					});
 				} else {
 					return done(null, true)
@@ -137,11 +158,11 @@ module.exports = function (app, nunjucksEnv) {
 			function LoadModules(done) {
 				Promise.join(
 
-					Loader.getDirModules('./app/controllers', 'controllers'),
-					Loader.getDirModules('./app/models', 'models'),
-					Loader.getDirModules('./app/services', 'services'),
-					Loader.getDirModules('./app/policies', 'policies'),
-					Loader.getDirModules('./app/responses', 'responses'),
+					Loader.getDirModules(path.join(appDir, "app", "controllers"), "controllers"),
+					Loader.getDirModules(path.join(appDir, "app", "models"), 'models'),
+					Loader.getDirModules(path.join(appDir, "app", "services"), 'services'),
+					Loader.getDirModules(path.join(appDir, "app", "policies"), 'policies'),
+					Loader.getDirModules(path.join(appDir, "app", "responses"), 'responses'),
 
 					function(controllers, models, services, policies, responses){
 						
@@ -169,6 +190,10 @@ module.exports = function (app, nunjucksEnv) {
 						})
 
 						done(null, true)
+
+				}).catch(function(err){
+					log.error("Light.LoadModules:", err.message)
+					done(err, null)
 				})
 			},
 
@@ -250,12 +275,15 @@ module.exports = function (app, nunjucksEnv) {
 				if (light.config.bootstrap || lodash.isFunction(light.config.bootstrap)) {
 					light.config.bootstrap(function(){ done(null, true); })
 					delete light.config.bootstrap;
+				} else {
+					log.warn("Light.Bootstrap:", "No bootstrap.js file in " , configDir)
+					done();
 				}
 			},
 
-			// modify res.render to not prepend view file extention when not present.
+			// modify res.render to not prepend view file extension when not present.
 			// The extension to prepend can be set in light.config.app.viewExt or 'html' is used
-			function PrependViewFieldExtention(done) {
+			function PrependViewFieldExtension(done) {
 				app.use(function(req, res, next){
 					res.show = function (viewFileName, obj) {
 						if (viewFileName.indexOf(".") === -1) {
@@ -269,7 +297,10 @@ module.exports = function (app, nunjucksEnv) {
 			}
 
 		], function(err, result){
-			if (err) throw new Error(err);
+			if (err) {
+				log.error("Light did not load correctly. exiting..")
+				return reject(err)
+			}
 			return resolve()
 		})
 	});
