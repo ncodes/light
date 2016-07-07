@@ -33,8 +33,12 @@ Light.on = function(appDir, cb) {
 		// define template
 		app.use(express.static(path.join(appDir, "assets")));
 
-		// configure app
-		var routes	= require(path.join(appConfigDir, "routes"));
+		try {
+			var routes	= require(path.join(appConfigDir, "routes"));
+		} catch(e) {
+			log.error(path.join(appConfigDir, "routes") + ":", e);
+			return cb(e, null);
+		}
 		
 		// Register routes
 		app.use('/', routes.root);
