@@ -1,7 +1,7 @@
 {
   "name": "node-light",
   "main": "index.js",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "dependencies": {
     "async": "^1.5.2",
     "bluebird": "^3.3.3",
@@ -14,7 +14,7 @@
     "express": "~4.0.0",
     "express-session": "^1.11.3",
     "http-errors": "^1.4.0",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.4",
     "log4js": "^0.6.26",
     "morgan": "^1.6.1",
     "nconf": "^0.8.4",
@@ -22,5 +22,8 @@
     "redis-url": "^1.2.1",
     "request": "^2.67.0",
     "yargs": "^3.24.0"
-  }
+  },
+  "repository": "https://github.com/ncodes/light.git",
+  "author": "Kennedy Idialu <kennedyidialu@gmail.com>",
+  "license": "MIT"
 }
